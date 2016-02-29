@@ -4,7 +4,13 @@ import os
 import sys
 import getpass
 
-MAXCOMPILERDIR = os.environ['MAXCOMPILERDIR']
+try:
+	import Environment
+	import Executor
+except ImportError, e:
+	print "Couldn't find project-utils modules."
+	sys.exit(1)
+
 
 network_config = [ 
 				{ 'NAME' : 'QSFP_TOP_10G_PORT1', 'DFE': '172.16.50.1', 'TAP': '172.16.50.10', 'NETMASK' : '255.255.255.0' }, 
@@ -12,8 +18,10 @@ network_config = [
 			] 
 
 class MaxCompilerSim(Executor):
-	def __init__(self):
+	def __init__(self, dfeModel):
 		super(MaxCompilerSim, self).__init__(logPrefix="[MaxCompilerSim] ")
+		self.MAXCOMPILERDIR = Environment.require("MAXCOMPILERDIR")
+		self.dfeModel = dfeModel
 
 	def getSimName():
 		return getpass.getuser() + 'Sim'
@@ -25,10 +33,10 @@ class MaxCompilerSim(Executor):
 		return ['-n', getSimName()] 
 
 	def getMaxCompilerSim():
-		return ['%s/bin/maxcompilersim' % MAXCOMPILERDIR]
+		return ['%s/bin/maxcompilersim' % self.MAXCOMPILERDIR]
 
-	def getDfeModelParam(dfeModel):
-		return ['-c', dfeModel]
+	def getDfeModelParam():
+		return ['-c', self.dfeModel]
 
 	def getNetSimParams(config):
 		params = [] 
@@ -37,14 +45,14 @@ class MaxCompilerSim(Executor):
 			params += ['-p', p['NAME'] + '%s.pcap' % (p['NAME'])]
 		return cmd
 	
-	def getSimParams(dfeModel, netConfig):
-		return getMaxCompilerSim() + getSimNameParam() + getDfeModelParam(dfeModel) + getNetSimParams(netConfig)
+	def getSimParams(netConfig):
+		return getMaxCompilerSim() + getSimNameParam() + getDfeModelParam() + getNetSimParams(netConfig)
 
-	def start(dfeModel="ISCA", netConfig=network_config):
+	def start(netConfig=network_config):
 		if self.isRunning():
 			print "Cannot start another instance of the simulator. Please stop the previous one."
 			return 
-		self.execCommand(getSimParams(dfeModel, netConfig))	
+		self.execCommand(getSimParams(netConfig))	
 
 	def stop():
 		self.kill()
