@@ -12,20 +12,20 @@ except ImportError, e:
 
 class MaxRuntimeBuilder(object):
 	def __init__(self, maxfiles=[], cc='gcc'):
-		for maxfile in maxfiles:
+		self.MAXELEROSDIR = Environment.require("MAXELEROSDIR")
+		self.MAXCOMPILERDIR = Environment.require("MAXCOMPILERDIR")
+		self.MAXNETDIR = Environment.require("MAXCOMPILERNETDIR")
+		self.cc = cc
+		self.maxfiles = maxfiles
+
+	def verifyMaxfiles(self):
+		for maxfile in self.maxfiles:
 			if not os.path.isfile(maxfile):
 				print "Maxfile doesn't exist: '%s'" % (maxfile)
 				sys.exit(1)
 			if not maxfile.endswith('.max'):
 				print "Maxfile doesn't end with .max: '%s'" % (maxfile)
 				sys.exit(1)
-
-		self.maxfiles = maxfiles
-		
-		self.MAXELEROSDIR = Environment.require("MAXELEROSDIR")
-		self.MAXCOMPILERDIR = Environment.require("MAXCOMPILERDIR")
-		self.MAXNETDIR = Environment.require("MAXCOMPILERNETDIR")
-		self.cc = cc
 
 	def getMaxelerOsInc(self):
 		"""return the include paths for MaxelerOS."""
@@ -53,6 +53,7 @@ class MaxRuntimeBuilder(object):
 
 	def getMaxfileLibs(self):
 		"""Return the Maxfile object to be used in linking."""
+		self.verifyMaxfiles()	
 		return [maxfile.replace('.max', '.o') for maxfile in self.maxfiles]
 
 	def getCompileFlags(self):
@@ -65,6 +66,7 @@ class MaxRuntimeBuilder(object):
 
 	def slicCompile(self):
 		"""Compile maxfiles in to a .o file"""
+		self.verifyMaxfiles()	
 		for m in self.maxfiles:
 			fabricate.run("%s/bin/sliccompile" % (self.MAXCOMPILERDIR), m, m.replace('.max', '.o'))
 
