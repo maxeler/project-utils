@@ -2,7 +2,7 @@ import os
 import sys
 
 try:
-	from fabricate import *
+	import fabricate
 	import Environment
 	import Executor
 except ImportError, e:
@@ -10,74 +10,76 @@ except ImportError, e:
 	sys.exit(1)
 
 
-class MaxRuntimeBuilder(Executor):
-	def __init__(self, cc='gcc', maxfile):
-		super(MaxRuntimeBuilder, self).__init__(logPrefix="[MaxRuntimeBuilder] ")
-		if not os.path.isfile(maxfile):
-			print "Maxfile doesn't exist: '%s'" % (maxfile)
-			exit(1)
- 
-		if not maxfile.endswith('.max'):
-			print "Maxfile doesn't end with .max: '%s'" % (maxfile)
-			exit(1)
+class MaxRuntimeBuilder(object):
+	def __init__(self, maxfiles=[], cc='gcc'):
+		for maxfile in maxfiles:
+			if not os.path.isfile(maxfile):
+				print "Maxfile doesn't exist: '%s'" % (maxfile)
+				sys.exit(1)
+			if not maxfile.endswith('.max'):
+				print "Maxfile doesn't end with .max: '%s'" % (maxfile)
+				sys.exit(1)
 
-		self.maxfile = maxfile
-		self.designName = maxfile.replace('.max', '')
+		self.maxfiles = maxfiles
 		
 		self.MAXELEROSDIR = Environment.require("MAXELEROSDIR")
 		self.MAXCOMPILERDIR = Environment.require("MAXCOMPILERDIR")
-		self.MAXNETDIR = Environment.require("MAXNETDIR")
+		self.MAXNETDIR = Environment.require("MAXCOMPILERNETDIR")
 		self.cc = cc
 
-	def getMaxelerOsInc():
+	def getMaxelerOsInc(self):
 		"""return the include paths for MaxelerOS."""
 		return ['-I%s/include' % self.MAXELEROSDIR]
 
-	def getMaxelerOsLibs():
+	def getMaxelerOsLibs(self):
 		"""Return the MaxelerOS libraries to be used in linking."""
 		return ['-L%s/lib' % self.MAXELEROSDIR, '-lmaxeleros']
 
-	def getSlicInc():
+	def getSlicInc(self):
 		"""Return the SLiC include paths."""
 		return ['-I%s/include/slic' % self.MAXCOMPILERDIR]
 
-	def getSlicLibs():
+	def getSlicLibs(self):
 		"""Return the SLiC libraries to be used in linking."""
 		return ['-L%s/lib' % self.MAXCOMPILERDIR, '-lslic']
 
-	def getMaxNetInc():
+	def getMaxNetInc(self):
 		"""Return the include paths for Networking."""
 		return ['-I%s/include/slicnet' % self.MAXNETDIR]
 
-	def getMaxNetLibs():
+	def getMaxNetLibs(self):
 		"""Return the Networking libraries to be used in linking."""
 		return ['-L%s/lib' % self.MAXNETDIR, '-lslicnet']
 
-	def getMaxfileLibs():
+	def getMaxfileLibs(self):
 		"""Return the Maxfile object to be used in linking."""
-		return [maxfile.replace('.max', '.o')]
+		return [maxfile.replace('.max', '.o') for maxfile in self.maxfiles]
 
-	def getCompileFlags():
+	def getCompileFlags(self):
 		"""Return all runtime include paths"""
-		return ['-DDESIGN_NAME=%s' % (self.designName)] + getMaxelerOsInc() + getSlicInc() + getMaxNetInc()
+		return self.getMaxelerOsInc() + self.getSlicInc() + self.getMaxNetInc()
 
-	def getLinkFlags():
+	def getLinkFlags(self):
 		"""Returns the libraries to be used for linking."""
-		return getMaxfileLibs() + getMaxelerOsLibs() + getSlicLibs() + getMaxNetLibs() + getMaxfileLibs() + ['-lpthread'] 
+		return self.getMaxfileLibs() + self.getMaxNetLibs() + self.getSlicLibs() + self.getMaxelerOsLibs() + ['-lpthread', '-lm', '-lrt'] 
 
-	def slicCompile():
-		"""Compiles a maxfile in to a .o file"""
-		run("%s/bin/sliccompile" % (self.MAXCOMPILERDIR), maxfile, self.maxfile.replace('.max', '.o'))
+	def slicCompile(self):
+		"""Compile maxfiles in to a .o file"""
+		for m in self.maxfiles:
+			fabricate.run("%s/bin/sliccompile" % (self.MAXCOMPILERDIR), m, m.replace('.max', '.o'))
 
-	def compile(sources):
-		for source in sources:
-			run(cc, getCompileFlags(), '-c', source, source.replace('.c', '.o'))
+	def compile(self, sources):
+		for s in sources:
+			fabricate.run(self.cc, self.getCompileFlags(), '-c', s, '-o', s.replace('.c', '.o'))
 
-	def link(sources, target):
+	def link(self, sources, target):
 		objects = [s.replace('.c', '.o') for s in sources]
-		run(cc, objects, getLinkFlags(), '-o', target)
+		fabricate.run(self.cc, objects, self.getLinkFlags(), '-o', target)
 
-	def clean():
-		autoclean()
+	def clean(self):
+		fabricate.autoclean()
 
 
+
+def main():
+	fabricate.main()

@@ -23,9 +23,13 @@ class Executor(object):
 		return self.logfile_path
 
 	def execCommand(self, params, wait_completion=0):
-		self.log("-----------------------------------------------------")
 		self.log("Executing: %s" % ( " ".join(params) ))
-		self.process = subprocess.Popen(params, stdout=self.logfile, stderr=self.logfile)
+		try:
+			self.process = subprocess.Popen(params, stdout=self.logfile, stderr=self.logfile)
+		except OSError, e:
+			self.log("Failed to execute: %s" % (str(e)))
+			sys.exit(1)
+
 		if (wait_completion < 0):
 			self.process.wait()
 		elif (wait_completion > 0):
@@ -62,7 +66,7 @@ class Executor(object):
 		return False
 
 	def log(self, args):
-		prefix = datetime.datetime.utcnow().strftime("[%Y-%m-%d %H:%M:%S.%f] ")
+		prefix = "" #datetime.datetime.utcnow().strftime("[%Y-%m-%d %H:%M:%S.%f] ")
 		if self.logPrefix:
 			prefix += self.logPrefix  
 		self.logfile.write(prefix + args + "\n")
