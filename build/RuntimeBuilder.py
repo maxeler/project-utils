@@ -14,7 +14,7 @@ class MaxRuntimeBuilder(object):
 	def __init__(self, maxfiles=[], cc='gcc'):
 		self.MAXELEROSDIR = Environment.require("MAXELEROSDIR")
 		self.MAXCOMPILERDIR = Environment.require("MAXCOMPILERDIR")
-		self.MAXNETDIR = Environment.require("MAXCOMPILERNETDIR")
+		self.MAXNETDIR = Environment.optional("MAXCOMPILERNETDIR")
 		self.cc = cc
 		self.maxfiles = maxfiles
 
@@ -45,10 +45,14 @@ class MaxRuntimeBuilder(object):
 
 	def getMaxNetInc(self):
 		"""Return the include paths for Networking."""
+		if not self.MAXNETDIR:
+			return []
 		return ['-I%s/include/slicnet' % self.MAXNETDIR]
 
 	def getMaxNetLibs(self):
 		"""Return the Networking libraries to be used in linking."""
+		if not self.MAXNETDIR:
+			return []
 		return ['-L%s/lib' % self.MAXNETDIR, '-lslicnet']
 
 	def getMaxfileLibs(self):
