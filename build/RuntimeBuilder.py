@@ -70,13 +70,13 @@ class MaxRuntimeBuilder(object):
 		for m in self.maxfiles:
 			fabricate.run("%s/bin/sliccompile" % (self.MAXCOMPILERDIR), m, m.replace('.max', '.o'))
 
-	def compile(self, sources):
+	def compile(self, sources, extra_cflags=[]):
 		for s in sources:
-			fabricate.run(self.cc, self.getCompileFlags(), '-c', s, '-o', s.replace('.c', '.o'))
+			fabricate.run(self.cc, self.getCompileFlags() + extra_cflags, '-c', s, '-o', s.replace('.c', '.o'))
 
-	def link(self, sources, target):
+	def link(self, sources, target, extra_ldflags=[]):
 		objects = [s.replace('.c', '.o') for s in sources]
-		fabricate.run(self.cc, objects, self.getLinkFlags(), '-o', target)
+		fabricate.run(self.cc, objects, self.getLinkFlags() + extra_ldflags, '-o', target)
 
 	def clean(self):
 		fabricate.autoclean()
