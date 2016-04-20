@@ -13,8 +13,8 @@ except ImportError, e:
 
 
 network_config = [ 
-				{ 'NAME' : 'QSFP_TOP_10G_PORT0', 'DFE': '172.16.50.1', 'TAP': '172.16.50.10', 'NETMASK' : '255.255.255.0' }, 
-				{ 'NAME' : 'QSFP_BOT_10G_PORT0', 'DFE': '172.16.60.1', 'TAP': '172.16.60.10', 'NETMASK' : '255.255.255.0' }
+				{ 'NAME' : 'QSFP_TOP_10G_PORT1', 'DFE': '172.16.50.1', 'TAP': '172.16.50.10', 'NETMASK' : '255.255.255.0' }, 
+				{ 'NAME' : 'QSFP_BOT_10G_PORT1', 'DFE': '172.16.60.1', 'TAP': '172.16.60.10', 'NETMASK' : '255.255.255.0' }
 			] 
 
 class MaxCompilerSim(Executor):
