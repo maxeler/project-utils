@@ -62,7 +62,7 @@ class MaxRuntimeBuilder(object):
 
 	def getCompileFlags(self):
 		"""Return all runtime include paths"""
-		return self.getMaxelerOsInc() + self.getSlicInc() + self.getMaxNetInc()
+		return self.getMaxelerOsInc() + self.getSlicInc() + self.getMaxNetInc() + ['-std=gnu99']
 
 	def getLinkFlags(self):
 		"""Returns the libraries to be used for linking."""

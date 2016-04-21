@@ -74,7 +74,7 @@ class MaxCompilerSim(Executor):
 			maxelerosdir = self.MAXCOMPILERDIR + "/lib/maxeleros-sim"
 			Environment.set("MAXELEROSDIR", maxelerosdir)
 			Environment.set("LD_PRELOAD", maxelerosdir + "/lib/libmaxeleros.so:" + self.ORIG_LD_PRELOAD)
-			Environment.set("SLIC_CONF", self.ORIG_SLIC_CONF + "use_simulation=" + self.getSimName())
+			Environment.set("SLIC_CONF", self.ORIG_SLIC_CONF + ";use_simulation=" + self.getSimName())
 			self.envSet = True
 	
 	def revertSimEnv(self):
